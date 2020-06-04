@@ -1,10 +1,34 @@
 <?php
 
 require_once('configs.php');
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
+/**
+ * Description of SomeClass
+ *
+ * @author kumarra
+ */
 class SomeClass {
 
+    private $client_id;
+    private $client_email;
+    private $client_name;
+    private $auth_url;
+    private $fetch_url;
+    private $auth_token;
     private $Posts = array();
+
+    public function __construct($client_id, $client_email, $client_name, $auth_url, $fetch_url) {
+        $this->client_id = $client_id;
+        $this->client_email = $client_email;
+        $this->client_name = $client_name;
+        $this->auth_url = $auth_url;
+        $this->fetch_url = $fetch_url;
+    }
 
     public function avgCharLengthOfPostPerMonth() {
         $postsPerMonth = array();
@@ -129,8 +153,9 @@ class SomeClass {
         return $this->Posts;
     }
 
-    public function getSocialPosts($sl_token, $page) {
-        $postUrl = "https://api.supermetrics.com/assignment/posts?sl_token=" . $sl_token . "&page=" . $page;
+    public function getSocialPosts($page) {
+
+        $postUrl = $this->fetch_url . "?sl_token=" . $this->auth_token . "&page=" . $page;
 
         $curl = curl_init();
 
@@ -162,7 +187,7 @@ class SomeClass {
         return false;
     }
 
-    public function getAuthToken($client_id, $email, $name) {
+    public function getAuthToken() {
 
         $authUrl = 'https://api.supermetrics.com/assignment/register';
 
@@ -177,9 +202,9 @@ class SomeClass {
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
             CURLOPT_POSTFIELDS => array(
-                'client_id' => $client_id,
-                'email' => $email,
-                'name' => $name
+                'client_id' => $this->client_id,
+                'email' => $this->client_email,
+                'name' => $this->client_name
             ),
         ));
 
@@ -191,7 +216,8 @@ class SomeClass {
             $response = json_decode($response, 1);
 
             if (!empty($response['data']['sl_token'])) {
-                return $response['data']['sl_token'];
+                $this->auth_token = (string) $response['data']['sl_token'];
+                return $this->auth_token;
             }
         }
 
